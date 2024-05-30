@@ -20,6 +20,25 @@ def filter_datum(
         pattern, lambda m: f"{m.group(1)}={redaction}{m.group(2)}", message)
 
 
+class RedactingFormatter(logging.Formatter):
+    """ Redacting Formatter class
+        """
+
+    REDACTION = "***"
+    FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
+    SEPARATOR = ";"
+
+    def __init__(self, fields: List[str]):
+        """ init """
+        super(RedactingFormatter, self).__init__(self.FORMAT)
+        self.fields = fields
+
+    def format(self, record: logging.LogRecord) -> str:
+        """ format """
+        msg = super().format(record)
+        return filter_datum(self.fields, self.REDACTION, msg, self.SEPARATOR)
+
+
 def get_logger() -> logging.Logger:
     """ get logger """
     logger = logging.getLogger("user_data")
@@ -46,20 +65,22 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
     return cn
 
 
-class RedactingFormatter(logging.Formatter):
-    """ Redacting Formatter class
-        """
+def main():
+    """ main """
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users;")
+    names = [i[0] for i in cursor.description]
 
-    REDACTION = "***"
-    FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
-    SEPARATOR = ";"
+    logger = get_logger()
 
-    def __init__(self, fields: List[str]):
-        """ init """
-        super(RedactingFormatter, self).__init__(self.FORMAT)
-        self.fields = fields
+    for row in cursor:
+        str_row = ''.join(f'{f}={str(r)}; ' for r, f in zip(row, names))
+        logger.info(str_row.strip())
 
-    def format(self, record: logging.LogRecord) -> str:
-        """ format """
-        msg = super().format(record)
-        return filter_datum(self.fields, self.REDACTION, msg, self.SEPARATOR)
+    cursor.close()
+    db.close()
+
+
+if __name__ == "__main__":
+    main()
