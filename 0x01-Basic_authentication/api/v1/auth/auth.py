@@ -12,24 +12,23 @@ class Auth:
 
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
         """ Determines if auth is requred for path """
-        if (path is None or excluded_paths is None or not excluded_paths):
+        if (path is None or excluded_paths is None or excluded_paths == []):
             return True
-        if not path.endswith('/'):
+        if path[-1] != '/':
             path += '/'
-        excluded_paths = [item if item.endswith(
-            '/') else item + '/' for item in excluded_paths]
-        if path in excluded_paths:
-            return False
+
+        for excluded_path in excluded_paths:
+            if excluded_path[-1] != '/':
+                excluded_path += '/'
+            if path == excluded_path:
+                return False
         return True
 
     def authorization_header(self, request=None) -> str:
         """ auth header from req"""
         if request is None:
             return None
-        header = request.header.get('Authorization')
-        if header is None:
-            return None
-        return header
+        return request.headers.get('Authorization')
 
     def current_user(self, request=None) -> TypeVar('User'):
         """ return the authorization_header """
