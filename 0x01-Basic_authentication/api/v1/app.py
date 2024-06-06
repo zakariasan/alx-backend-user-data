@@ -45,20 +45,21 @@ def not_found(error) -> str:
 @app.before_request
 def auth_user():
     """ auth a user before processing """
-    if auth is None:
-        return
-    bad_paths = [
-        '/api/v1/status/',
-        '/api/v1/unauthorized/',
-        '/api/v1/forbidden/',
-    ]
-    if not auth.require_auth(request.path, bad_paths):
-        return
-    if auth.require_auth(request.path, bad_paths) is None:
-        abort(401)
+    if auth:
+        excluded_paths = [
+            '/api/v1/status/',
+            '/api/v1/unauthorized/',
+            '/api/v1/forbidden/',
+        ]
+        if auth.require_auth(request.path, excluded_paths):
+            auth_header = auth.authorization_header(request)
+            user_auth = auth.current_user(request)
 
-    if auth.authorization_header(request) is None:
-        abort(403)
+            if auth_header is None:
+                abort(401)
+
+            if user_auth is None:
+                abort(403)
 
 
 if __name__ == "__main__":
