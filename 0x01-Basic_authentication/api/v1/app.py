@@ -17,7 +17,7 @@ auth = None
 auth_type = getenv('AUTH_TYPE', 'auth')
 if auth_type == 'auth':
     from api.v1.auth.auth import Auth
-    auth = Auth(403)
+    auth = Auth()
 
 
 @app.errorhandler(403)
