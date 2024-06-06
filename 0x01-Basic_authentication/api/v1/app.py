@@ -38,6 +38,7 @@ def not_found(error) -> str:
     """
     return jsonify({"error": "Not found"}), 404
 
+
 @app.before_request
 def auth_user():
     """ auth a user before processing """
@@ -48,11 +49,13 @@ def auth_user():
         '/api/v1/unauthorized/',
         '/api/v1/forbidden/',
     ]
-    if not auth.require_auth(request.path, bad_paths) is None:
+    if auth.require_auth(request.path, bad_paths) is None:
         abort(401)
 
     if auth.authorization_header(request) is None:
         abort()
+
+
 if __name__ == "__main__":
     host = getenv("API_HOST", "0.0.0.0")
     port = getenv("API_PORT", "5000")
