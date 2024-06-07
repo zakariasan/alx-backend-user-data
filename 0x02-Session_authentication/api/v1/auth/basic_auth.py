@@ -3,7 +3,7 @@
 Route module for the API
 """
 
-from api.v1.auth.auth.py import Auth
+from api.v1.auth.auth import Auth
 
 import re
 import base64
